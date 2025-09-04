@@ -28,10 +28,19 @@ python manage.py migrate --noinput
 
 if [ "${INGEST_ON_START:-0}" = "1" ]; then
   echo "Running initial ingestion..."
-  if [ -n "${INGEST_GLOB:-}" ]; then
-    python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" --glob "${INGEST_GLOB}" || true
+  if [ -n "${INGEST_GDRIVE_URL:-}" ]; then
+    echo "Downloading dataset from Google Drive..."
+    if [ -n "${INGEST_GLOB:-}" ]; then
+      python manage.py ingest_gdrive --url "${INGEST_GDRIVE_URL}" --glob "${INGEST_GLOB}" || true
+    else
+      python manage.py ingest_gdrive --url "${INGEST_GDRIVE_URL}" || true
+    fi
   else
-    python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" || true
+    if [ -n "${INGEST_GLOB:-}" ]; then
+      python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" --glob "${INGEST_GLOB}" || true
+    else
+      python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" || true
+    fi
   fi
 fi
 

@@ -29,6 +29,8 @@ Commands:
   migrate          Run Django migrations
   ingest [--root PATH] [--glob GLOB] [--limit N]
                    Ingest (CSV+XLSX). Defaults: root="$ROOT_DEFAULT", glob="all"
+  ingest-gdrive --url URL [--glob GLOB] [--keep] [--out-dir DIR]
+                   Download from Google Drive and ingest. Defaults: glob="all"
   superuser        Create a Django superuser
 
 Examples:
@@ -78,6 +80,23 @@ case "$cmd" in
     ARGS=(--root "$ROOT" --glob "$GLOB")
     if [[ -n "$LIMIT" ]]; then ARGS+=(--limit "$LIMIT"); fi
     "${COMPOSE[@]}" exec web python manage.py ingest_local "${ARGS[@]}"
+    ;;
+  ingest-gdrive)
+    URL=''; GLOB='all'; KEEP=0; OUT_DIR='data'
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --url) URL="$2"; shift 2 ;;
+        --glob) GLOB="$2"; shift 2 ;;
+        --keep) KEEP=1; shift 1 ;;
+        --out-dir) OUT_DIR="$2"; shift 2 ;;
+        *) echo "Unknown option: $1"; usage; exit 1 ;;
+      esac
+    done
+    if [[ -z "$URL" ]]; then echo "--url is required"; usage; exit 1; fi
+    "${COMPOSE[@]}" up -d
+    ARGS=(--url "$URL" --glob "$GLOB" --out-dir "$OUT_DIR")
+    if [[ "$KEEP" -eq 1 ]]; then ARGS+=(--no-cleanup); fi
+    "${COMPOSE[@]}" exec web python manage.py ingest_gdrive "${ARGS[@]}"
     ;;
   superuser)
     "${COMPOSE[@]}" up -d

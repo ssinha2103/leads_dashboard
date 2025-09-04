@@ -25,6 +25,22 @@ The default dataset root is `data/USA Database Business Leads`. You can trigger 
 
 The ingestor tracks per-file hash, size, and timestamps in `SourceFile`; it only re-processes when the file content changes.
 
+Google Drive Ingest
+
+If you prefer to share a Google Drive link (file or folder) instead of committing data locally, the app can download, ingest, and clean up automatically.
+
+- One-time on boot via `.env`:
+
+  - `INGEST_ON_START=1`
+  - `INGEST_GDRIVE_URL=https://drive.google.com/file/d/<id>/view` (or a folder link)
+  - Optional: `INGEST_GLOB=all` (default), e.g. `**/*.csv`
+
+On startup, Django will use `ingest_gdrive` to download to a temporary subfolder under `data/`, extract archives if needed, ingest into Postgres, and then clean up the temporary files. The `data/` folder is already in `.gitignore`, so nothing is added to the repo.
+
+You can also run it manually inside the web container:
+
+`docker compose exec web python manage.py ingest_gdrive --url "<gdrive_link>" --glob all`
+
 Explore UI
 
 - Explore at http://localhost:8000/leads/
