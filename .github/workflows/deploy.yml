@@ -53,9 +53,7 @@ jobs:
         with:
           version: '>= 463.0.0'
 
-      - name: Enable required APIs
-        run: |
-          gcloud services enable run.googleapis.com artifactregistry.googleapis.com sqladmin.googleapis.com --project "$PROJECT_ID"
+      # APIs should be enabled once during bootstrap. Skipping here to avoid needing admin permissions.
 
       - name: Configure Docker auth for Artifact Registry
         run: |
