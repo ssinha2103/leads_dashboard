@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    environment:
+      name: prod
     env:
       # Expose auth secrets to env for conditional checks
       WIF_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}

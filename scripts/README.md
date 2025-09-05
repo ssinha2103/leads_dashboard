@@ -78,6 +78,8 @@ Option A — GitHub UI: Repo → Settings → Secrets and variables → Actions 
 
 Option B — GitHub CLI: run these commands locally or in Cloud Shell with `gh auth login` first. The `-R` flag targets your repo directly.
 
+Note: If you store secrets as Environment secrets (e.g., under an environment named `prod`), the workflow must target that environment. This repo’s workflow is set to `environment: prod`. If you use a different environment name, update `.github/workflows/deploy.yml` accordingly or move the secrets to repository‑level.
+
 - Core:
 `gh secret set -R ssinha2103/leads_dashboard GCP_PROJECT_ID -b "$PROJECT_ID"`
 `gh secret set -R ssinha2103/leads_dashboard CLOUD_RUN_REGION -b "$REGION"`
@@ -112,5 +114,4 @@ Post‑Deploy
 Optional: Run on a VM instead of Cloud Run (not recommended)
 - Only if you explicitly want a VM: create a Compute Engine VM, SSH in, install Docker, clone the repo, and run `bash scripts/run.sh up-d`.
 - This bypasses Cloud Run and CI/CD; you’ll manage uptime, scaling, and updates yourself.
-
 
