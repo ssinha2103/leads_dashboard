@@ -81,3 +81,37 @@ Run full-root ingest now
 
 Start services (detached): `bash scripts/run.sh up-d`
 Kick off full ingest (CSV + XLSX): `bash scripts/run.sh ingest --root "data/USA Database Business Leads" --glob all`
+
+GCP Deployment (Cloud Run)
+
+Overview
+- Container image builds in GitHub Actions on merge to `master`.
+- Image pushes to Artifact Registry, then deploys to Cloud Run.
+- App connects to Cloud SQL (Postgres) via Cloud Run attachment.
+
+Bootstrap GCP (one time)
+- Install gcloud locally and authenticate to your GCP project.
+- Run:
+  - `bash scripts/gcp_bootstrap.sh <PROJECT_ID> <REGION> <SERVICE_NAME> <ARTIFACT_REPO> <SQL_INSTANCE_NAME> <DB_NAME> <DB_USER> <DB_PASSWORD>`
+  - Save the printed Cloud SQL connection name (format: `project:region:instance`).
+
+GitHub Secrets (repository settings)
+- `GCP_PROJECT_ID`: your project ID
+- `GCP_SA_KEY`: JSON for a service account with roles: Artifact Registry Writer, Cloud Run Admin, Cloud SQL Client
+- `CLOUD_RUN_REGION`: e.g., `us-central1`
+- `CLOUD_RUN_SERVICE`: e.g., `leads-dashboard`
+- `ARTIFACT_REPO`: Artifact Registry repo name, e.g., `leads-dashboard`
+- `CLOUD_SQL_INSTANCE`: Cloud SQL connection name `project:region:instance`
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD`: Postgres credentials
+- `DJANGO_SECRET_KEY`: a strong random string
+- `ALLOWED_HOSTS`: Cloud Run URL host or your domain (comma separated)
+- Optional: `INGEST_ON_START`, `INGEST_GDRIVE_URL`, `INGEST_GLOB`
+
+Deploy
+- Push to `master`; the workflow `.github/workflows/deploy.yml` builds and deploys automatically.
+- The service URL is printed in the job logs or can be retrieved via `gcloud run services describe`.
+
+Notes
+- The container uses Gunicorn in Cloud Run (`USE_GUNICORN=1`).
+- Static files are served via WhiteNoise; they’re collected during build.
+- Database sockets are mounted at `/cloudsql/<connectionName>`; env `DB_HOST` is set accordingly by the workflow.
