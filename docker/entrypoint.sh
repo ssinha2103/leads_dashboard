@@ -22,17 +22,35 @@ else:
     sys.exit('DB not available')
 PY
 
-# Make and apply migrations
-python manage.py makemigrations --noinput
+# Make and apply migrations (always safe in dev; optional in prod)
+python manage.py makemigrations --noinput || true
 python manage.py migrate --noinput
 
 if [ "${INGEST_ON_START:-0}" = "1" ]; then
   echo "Running initial ingestion..."
-  if [ -n "${INGEST_GLOB:-}" ]; then
-    python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" --glob "${INGEST_GLOB}" || true
+  if [ -n "${INGEST_GDRIVE_URL:-}" ]; then
+    echo "Downloading dataset from Google Drive..."
+    if [ -n "${INGEST_GLOB:-}" ]; then
+      python manage.py ingest_gdrive --url "${INGEST_GDRIVE_URL}" --glob "${INGEST_GLOB}" || true
+    else
+      python manage.py ingest_gdrive --url "${INGEST_GDRIVE_URL}" || true
+    fi
   else
-    python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" || true
+    if [ -n "${INGEST_GLOB:-}" ]; then
+      python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" --glob "${INGEST_GLOB}" || true
+    else
+      python manage.py ingest_local --root "${INGEST_ROOT:-data/USA Database Business Leads}" || true
+    fi
   fi
 fi
 
-python manage.py runserver 0.0.0.0:8000
+if [ "${USE_GUNICORN:-0}" = "1" ]; then
+  echo "Starting gunicorn..."
+  exec gunicorn leads_dashboard.wsgi:application \
+    --bind 0.0.0.0:8000 \
+    --workers "${WEB_CONCURRENCY:-2}" \
+    --threads "${WEB_THREADS:-8}" \
+    --timeout "${WEB_TIMEOUT:-120}"
+else
+  python manage.py runserver 0.0.0.0:8000
+fi

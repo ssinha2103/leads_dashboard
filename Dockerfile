@@ -19,7 +19,9 @@ RUN chmod +x /app/docker/entrypoint.sh
 # Copy project (mounted again by volume in compose for dev)
 COPY . /app
 
+# Collect static assets at build time (safe to ignore failures in dev)
+RUN python manage.py collectstatic --noinput || true
+
 EXPOSE 8000
 
 CMD ["/bin/bash", "-lc", "./docker/entrypoint.sh"]
-
