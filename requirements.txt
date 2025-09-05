@@ -7,3 +7,5 @@ ujson==5.10.0
 requests==2.32.3
 openpyxl==3.1.5
 gdown==5.2.0
+gunicorn==22.0.0
+whitenoise==6.7.0

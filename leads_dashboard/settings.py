@@ -21,6 +21,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -49,12 +50,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'leads_dashboard.wsgi.application'
 
-DATABASES = {
-    'default': dj_database_url.parse(
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    default_db = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+else:
+    default_db = dj_database_url.parse(
         f"postgres://{os.environ.get('DB_USER','leads')}:{os.environ.get('DB_PASSWORD','leads')}@{os.environ.get('DB_HOST','db')}:{os.environ.get('DB_PORT','5432')}/{os.environ.get('DB_NAME','leads')}",
         conn_max_age=600,
     )
-}
+DATABASES = {'default': default_db}
 
 AUTH_PASSWORD_VALIDATORS = []
 
@@ -66,6 +70,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

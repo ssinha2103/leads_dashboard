@@ -22,8 +22,8 @@ else:
     sys.exit('DB not available')
 PY
 
-# Make and apply migrations
-python manage.py makemigrations --noinput
+# Make and apply migrations (always safe in dev; optional in prod)
+python manage.py makemigrations --noinput || true
 python manage.py migrate --noinput
 
 if [ "${INGEST_ON_START:-0}" = "1" ]; then
@@ -44,4 +44,13 @@ if [ "${INGEST_ON_START:-0}" = "1" ]; then
   fi
 fi
 
-python manage.py runserver 0.0.0.0:8000
+if [ "${USE_GUNICORN:-0}" = "1" ]; then
+  echo "Starting gunicorn..."
+  exec gunicorn leads_dashboard.wsgi:application \
+    --bind 0.0.0.0:8000 \
+    --workers "${WEB_CONCURRENCY:-2}" \
+    --threads "${WEB_THREADS:-8}" \
+    --timeout "${WEB_TIMEOUT:-120}"
+else
+  python manage.py runserver 0.0.0.0:8000
+fi
