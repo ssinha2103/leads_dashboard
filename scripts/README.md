@@ -112,3 +112,5 @@ Post‑Deploy
 Optional: Run on a VM instead of Cloud Run (not recommended)
 - Only if you explicitly want a VM: create a Compute Engine VM, SSH in, install Docker, clone the repo, and run `bash scripts/run.sh up-d`.
 - This bypasses Cloud Run and CI/CD; you’ll manage uptime, scaling, and updates yourself.
+
+
